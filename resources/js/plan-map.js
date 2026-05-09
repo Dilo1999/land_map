@@ -3,11 +3,43 @@
  */
 const OWNERS_PER_PAGE = 27;
 
-function ownerLabel(globalIndex) {
-  return `Owner ${globalIndex + 1}`;
+/** Matches Filament `PlanPlot` statuses — fills plots that have admin records. */
+const STATUS_FILL = {
+  done: '#22c55e',
+  under_construction: '#eab308',
+  unfinished: '#ef4444',
+};
+
+const STATUS_LABEL = {
+  done: 'Done',
+  under_construction: 'Under construction',
+  unfinished: 'Unfinished',
+};
+
+function readPlanPlotsPayload() {
+  const el = document.getElementById('plan-plots-data');
+  if (!el || !el.textContent.trim()) return {};
+  try {
+    return JSON.parse(el.textContent);
+  } catch {
+    return {};
+  }
+}
+
+function plotMeta(planPlots, plotNumber) {
+  const row = planPlots[String(plotNumber)];
+  return row && typeof row === 'object' ? row : {};
+}
+
+function ownerLabel(planPlots, globalIndex) {
+  const n = globalIndex + 1;
+  const { owner_name: ownerName } = plotMeta(planPlots, n);
+  if (ownerName && String(ownerName).trim()) return String(ownerName).trim();
+  return `Owner ${n}`;
 }
 
 function initPlanMap() {
+  const planPlots = readPlanPlotsPayload();
   const root = document.querySelector('[data-plan-root]');
   const mount = document.querySelector('[data-map-mount]');
   const viewport = document.querySelector('[data-map-viewport]');
@@ -67,25 +99,67 @@ function initPlanMap() {
     document.body.classList.remove('overflow-hidden');
   }
 
+  function clearEl(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
+  function appendLabelValue(container, label, valueText) {
+    const row = document.createElement('div');
+    const lab = document.createElement('span');
+    lab.className = 'font-semibold';
+    lab.textContent = `${label}: `;
+    row.appendChild(lab);
+    row.appendChild(document.createTextNode(valueText));
+    container.appendChild(row);
+  }
+
   function setDetailsContent() {
     if (!detailsSubtitle || !detailsBody) return;
 
     if (selectedOwner == null) {
       detailsSubtitle.textContent = 'No selection';
-      detailsBody.innerHTML =
-        '<div>Select a plot on the map or an owner button, then tap “View details”.</div>';
+      clearEl(detailsBody);
+      const hint = document.createElement('div');
+      hint.textContent =
+        'Select a plot on the map or an owner button, then tap “View”.';
+      detailsBody.appendChild(hint);
       return;
     }
 
     const plotNumber = selectedOwner + 1;
-    detailsSubtitle.textContent = `Selected plot ${plotNumber}`;
+    const meta = plotMeta(planPlots, plotNumber);
+    const ownerName = meta.owner_name && String(meta.owner_name).trim();
+    const roadNo = meta.road_no && String(meta.road_no).trim();
+    const detailsText = meta.details && String(meta.details).trim();
 
-    const ownerText = selectedOwner < 81 ? `Owner ${plotNumber}` : `Owner (not available)`;
-    detailsBody.innerHTML = [
-      `<div><span class="font-semibold">Plot:</span> ${plotNumber}</div>`,
-      `<div><span class="font-semibold">Owner:</span> ${ownerText}</div>`,
-      `<div class="text-gray-600">Replace this with your real plot/owner data when available.</div>`,
-    ].join('');
+    detailsSubtitle.textContent = ownerName || `Plot ${plotNumber}`;
+
+    clearEl(detailsBody);
+    detailsBody.className = 'text-sm text-gray-800 space-y-2';
+
+    appendLabelValue(detailsBody, 'Plot', String(plotNumber));
+    const statusKey = meta.status && String(meta.status).trim();
+    const statusHuman =
+      statusKey && STATUS_LABEL[statusKey] ? STATUS_LABEL[statusKey] : null;
+    if (statusHuman) {
+      appendLabelValue(detailsBody, 'Status', statusHuman);
+    }
+    if (roadNo) {
+      appendLabelValue(detailsBody, 'Road no.', roadNo);
+    }
+    appendLabelValue(
+      detailsBody,
+      'Owner',
+      ownerName || ownerLabel(planPlots, selectedOwner)
+    );
+
+    const notes = document.createElement('div');
+    notes.className =
+      'text-gray-700 whitespace-pre-wrap border-t border-black/10 mt-2 pt-3';
+    notes.textContent =
+      detailsText ||
+      'No extra details have been added for this plot in the admin panel yet.';
+    detailsBody.appendChild(notes);
   }
 
   function clamp(n, min, max) {
@@ -125,7 +199,7 @@ function initPlanMap() {
     for (let g = start; g < end; g += 1) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.textContent = ownerLabel(g);
+      btn.textContent = ownerLabel(planPlots, g);
       btn.className =
         'flex items-center justify-center px-3 py-2 sm:px-6 sm:py-3 text-sm sm:text-base leading-none whitespace-nowrap border-2 rounded-lg transition-colors font-medium border-gray-900 bg-white hover:bg-gray-100 text-gray-900';
       if (selectedOwner === g) {
@@ -238,6 +312,11 @@ function initPlanMap() {
     totalPlots = plotElements.length;
     totalPages = Math.max(1, Math.ceil(totalPlots / OWNERS_PER_PAGE));
     plotElements.forEach((plot, index) => {
+      const plotNumber = index + 1;
+      const { status } = plotMeta(planPlots, plotNumber);
+      if (status && STATUS_FILL[status]) {
+        plot.style.fill = STATUS_FILL[status];
+      }
       plot.style.cursor = 'pointer';
       plot.style.transition = 'all 0.3s ease';
       plot.addEventListener('click', () => {

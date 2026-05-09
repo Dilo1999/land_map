@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
@@ -28,4 +29,4 @@ Route::match(['get', 'head'], 'storage/{path}', function () {
     return response()->file($realPath);
 })->where('path', '.*')->name('storage.serve');
 
-Route::get('/', fn () => view('home'))->name('home');
+Route::get('/', HomeController::class)->name('home');

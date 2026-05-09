@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dambulla Plan 2001MT65 — Interactive Plan</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script type="application/json" id="plan-plots-data">@json($planPlotsPayload ?? [])</script>
 </head>
 <body class="h-full antialiased bg-white text-gray-900">
     {{-- Mirrors src/app/App.tsx: size-full flex; min-h-screen fills viewport when html/body are h-full --}}
@@ -75,6 +76,11 @@
                     Dambulla Plan 2001MT65
                 </h1>
                 <p class="text-lg sm:text-xl text-gray-600">Interactive Plan</p>
+                <ul class="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-xs sm:text-sm text-gray-600" aria-label="Plot status colors">
+                    <li class="flex items-center gap-2"><span class="inline-block size-3 rounded-sm shrink-0 bg-green-500" aria-hidden="true"></span> Done</li>
+                    <li class="flex items-center gap-2"><span class="inline-block size-3 rounded-sm shrink-0 bg-yellow-500" aria-hidden="true"></span> Under construction</li>
+                    <li class="flex items-center gap-2"><span class="inline-block size-3 rounded-sm shrink-0 bg-red-500" aria-hidden="true"></span> Unfinished</li>
+                </ul>
             </div>
 
             {{-- Scroll only the owner list; keep pagination at the bottom --}}
