@@ -34,6 +34,14 @@
                 <button type="button" data-zoom-reset class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-gray-900 bg-white/90 backdrop-blur flex items-center justify-center hover:bg-gray-100 transition-colors" aria-label="Reset zoom">
                     <span class="text-sm font-semibold">1:1</span>
                 </button>
+
+                <button
+                    type="button"
+                    data-view-details
+                    class="mt-2 px-4 py-2 rounded-full border-2 border-gray-900 bg-white/90 backdrop-blur hover:bg-gray-100 transition-colors text-sm font-medium"
+                >
+                    View details
+                </button>
             </div>
         </div>
 
