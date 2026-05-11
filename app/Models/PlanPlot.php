@@ -12,6 +12,8 @@ class PlanPlot extends Model
 
     public const STATUS_UNFINISHED = 'unfinished';
 
+    public const REMOVED_PLOT_NUMBERS = [1, 2, 3, 4];
+
     protected $fillable = [
         'plot_number',
         'status',

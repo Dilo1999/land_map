@@ -45,10 +45,11 @@ class PlanPlotResource extends Resource
                             ->label('Plot number')
                             ->numeric()
                             ->required()
-                            ->minValue(1)
+                            ->minValue(5)
+                            ->notIn(PlanPlot::REMOVED_PLOT_NUMBERS)
                             ->unique(ignoreRecord: true)
                             ->helperText(
-                                'Must match this plot’s position on the map (1 = first clickable green/blue shape in the SVG).'
+                                'Must match this plot’s position on the map. Plot numbers 1-4 have been removed.'
                             ),
                         Select::make('status')
                             ->label('Map status')
@@ -124,6 +125,7 @@ class PlanPlotResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery();
+        return parent::getEloquentQuery()
+            ->whereNotIn('plot_number', PlanPlot::REMOVED_PLOT_NUMBERS);
     }
 }

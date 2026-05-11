@@ -10,6 +10,7 @@ class HomeController extends Controller
     public function __invoke(): View
     {
         $payload = PlanPlot::query()
+            ->whereNotIn('plot_number', PlanPlot::REMOVED_PLOT_NUMBERS)
             ->orderBy('plot_number')
             ->get(['plot_number', 'status', 'owner_name', 'road_no', 'details'])
             ->mapWithKeys(fn (PlanPlot $p) => [
