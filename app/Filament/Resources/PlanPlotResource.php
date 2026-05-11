@@ -56,7 +56,7 @@ class PlanPlotResource extends Resource
                             ->required()
                             ->default(PlanPlot::STATUS_UNFINISHED)
                             ->helperText(
-                                'Done = green, Under construction = yellow, Unfinished = red on the public map.'
+                                'Cleared = green, In Process = yellow, Unknown = red on the public map.'
                             ),
                         TextInput::make('owner_name')
                             ->label('Owner / title')

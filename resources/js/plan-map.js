@@ -11,9 +11,9 @@ const STATUS_FILL = {
 };
 
 const STATUS_LABEL = {
-  done: 'Done',
-  under_construction: 'Under construction',
-  unfinished: 'Unfinished',
+  done: 'Cleared',
+  under_construction: 'In Process',
+  unfinished: 'Unknown',
 };
 
 function readPlanPlotsPayload() {

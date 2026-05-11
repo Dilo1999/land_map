@@ -30,9 +30,9 @@ class PlanPlot extends Model
     public static function statusOptions(): array
     {
         return [
-            self::STATUS_DONE => 'Done',
-            self::STATUS_UNDER_CONSTRUCTION => 'Under construction',
-            self::STATUS_UNFINISHED => 'Unfinished',
+            self::STATUS_DONE => 'Cleared',
+            self::STATUS_UNDER_CONSTRUCTION => 'In Process',
+            self::STATUS_UNFINISHED => 'Unknown',
         ];
     }
 }
