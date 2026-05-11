@@ -2,6 +2,7 @@
  * Dambulla plan: interactive SVG + owner grid + pagination (mirrors React App.tsx / InteractiveMap.tsx).
  */
 const OWNERS_PER_PAGE = 27;
+const REMOVED_PLOT_NUMBERS = new Set([1, 2, 3, 4]);
 
 /** Matches Filament `PlanPlot` statuses — fills plots that have admin records. */
 const STATUS_FILL = {
@@ -73,6 +74,7 @@ function initPlanMap() {
   let totalPages = 1;
   let totalPlots = 0;
   let pageButtons = [];
+  let visiblePlotIndexes = [];
 
   function isMobilePagination() {
     return window.matchMedia && window.matchMedia('(max-width: 639px)').matches;
@@ -189,14 +191,15 @@ function initPlanMap() {
   }
 
   function globalIndexForSlot(slotIndex) {
-    return (currentPage - 1) * OWNERS_PER_PAGE + slotIndex;
+    return visiblePlotIndexes[(currentPage - 1) * OWNERS_PER_PAGE + slotIndex];
   }
 
   function renderGrid() {
     grid.innerHTML = '';
     const start = (currentPage - 1) * OWNERS_PER_PAGE;
-    const end = Math.min(start + OWNERS_PER_PAGE, totalPlots);
-    for (let g = start; g < end; g += 1) {
+    const end = Math.min(start + OWNERS_PER_PAGE, visiblePlotIndexes.length);
+    for (let i = start; i < end; i += 1) {
+      const g = visiblePlotIndexes[i];
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = ownerLabel(planPlots, g);
@@ -309,10 +312,18 @@ function initPlanMap() {
     }
 
     plotElements = Array.from(svgElement.querySelectorAll('.st0, .st1'));
-    totalPlots = plotElements.length;
+    visiblePlotIndexes = plotElements
+      .map((_, index) => index)
+      .filter((index) => !REMOVED_PLOT_NUMBERS.has(index + 1));
+    totalPlots = visiblePlotIndexes.length;
     totalPages = Math.max(1, Math.ceil(totalPlots / OWNERS_PER_PAGE));
     plotElements.forEach((plot, index) => {
       const plotNumber = index + 1;
+      if (REMOVED_PLOT_NUMBERS.has(plotNumber)) {
+        plot.style.display = 'none';
+        plot.style.pointerEvents = 'none';
+        return;
+      }
       const { status } = plotMeta(planPlots, plotNumber);
       if (status && STATUS_FILL[status]) {
         plot.style.fill = STATUS_FILL[status];
@@ -321,7 +332,8 @@ function initPlanMap() {
       plot.style.transition = 'all 0.3s ease';
       plot.addEventListener('click', () => {
         selectedOwner = index;
-        currentPage = Math.floor(index / OWNERS_PER_PAGE) + 1;
+        const visiblePosition = visiblePlotIndexes.indexOf(index);
+        currentPage = Math.floor(visiblePosition / OWNERS_PER_PAGE) + 1;
         renderGrid();
         renderPageButtons();
         updatePaginationUi();
